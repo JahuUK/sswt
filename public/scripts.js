@@ -164,18 +164,27 @@ async function loadMeals() {
     meals.forEach(meal => {
       const li = document.createElement('li');
       li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+
+      // Format timestamp
+      const timestamp = new Date(meal.timestamp).toLocaleString();
+
       li.innerHTML = `
-        <span>${meal.name} - ${meal.calories} calories</span>
+        <div>
+          <span>${meal.name} - ${meal.calories} calories</span>
+          <small class="text-muted d-block">${timestamp}</small>
+        </div>
         <button class="btn-delete" onclick="deleteMeal(${meal.id})">
           <i class="fas fa-trash-alt"></i>
         </button>
       `;
+
       mealsList.appendChild(li);
     });
   } catch (err) {
-    console.error('Error loading meals:', err);
+    console.error('Error loading meals:', err.message);
   }
 }
+
 
 // Delete a meal
 async function deleteMeal(mealId) {

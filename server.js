@@ -135,13 +135,13 @@ app.post('/api/login', async (req, res) => {
 
 
 
-// Add meal
+// Add meal 
 app.post('/api/add-meal', async (req, res) => {
   const { userId, meal } = req.body;
 
   try {
-    await sql.query`INSERT INTO Meals (userId, name, calories, date) 
-                    VALUES (${userId}, ${meal.name}, ${meal.calories}, ${meal.date})`;
+    await sql.query`INSERT INTO Meals (userId, name, calories, timestamp) 
+                    VALUES (${userId}, ${meal.name}, ${meal.calories}, GETDATE())`;
     res.send('Meal added');
   } catch (err) {
     console.error('Error adding meal:', err.message);
@@ -149,18 +149,20 @@ app.post('/api/add-meal', async (req, res) => {
   }
 });
 
+
 // Get meals
 app.get('/api/meals', async (req, res) => {
   const { userId } = req.query;
 
   try {
-    const result = await sql.query`SELECT * FROM Meals WHERE userId = ${userId}`;
+    const result = await sql.query`SELECT id, name, calories, timestamp FROM Meals WHERE userId = ${userId} ORDER BY timestamp DESC`;
     res.send(result.recordset);
   } catch (err) {
     console.error('Error fetching meals:', err.message);
     res.status(500).send('Error fetching meals');
   }
 });
+
 
 // Delete meal
 app.delete('/api/delete-meal', async (req, res) => {
