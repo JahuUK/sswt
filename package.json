@@ -1,0 +1,29 @@
+{
+  "name": "calorie-counter",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"No tests defined\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mssql": "^11.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JahuUK/calorie-counter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JahuUK/calorie-counter/issues"
+  },
+  "homepage": "https://github.com/JahuUK/calorie-counter#readme",
+  "description": ""
+}

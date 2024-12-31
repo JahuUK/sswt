@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Simple Weight Tracker</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <div class="container">
+    <div id="app" class="mt-5">
+      <h1 class="text-center">SSWT</h1>
+      <div class="row">
+        <div class="col-md-6 offset-md-3">
+
+          <!-- Login Section -->
+          <div id="login" class="card p-4 mt-4">
+            <h2>Login</h2>
+            <div class="form-group">
+              <input type="text" id="username" class="form-control" placeholder="Username">
+            </div>
+            <div class="form-group">
+              <input type="password" id="password" class="form-control" placeholder="Password">
+            </div>
+            <div class="form-check">
+              <input type="checkbox" id="remember-me" class="form-check-input">
+              <label for="remember-me" class="form-check-label">Remember Me</label>
+            </div>
+            <button class="btn btn-primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> Login</button>
+            <button class="btn btn-link" onclick="toggleSection('register')">Register Here</button>
+            <button class="btn btn-link" onclick="toggleSection('recover-password')">Forgot Password?</button>
+          </div>
+
+          <!-- Register Section -->
+          <div id="register" class="card p-4 mt-4" style="display: none;">
+            <h2>Register</h2>
+            <div class="form-group">
+              <input type="text" id="reg-username" class="form-control" placeholder="Username">
+            </div>
+            <div class="form-group">
+              <input type="password" id="reg-password" class="form-control" placeholder="Password">
+            </div>
+            <div class="form-group">
+              <label for="security-question">Security Question</label>
+              <select id="security-question" class="form-control">
+                <option value="" disabled selected>Select a security question</option>
+                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What was the make of your first car?">What was the make of your first car?</option>
+                <option value="What city were you born in?">What city were you born in?</option>
+                <option value="What was your favorite teacher's name?">What was your favorite teacher's name?</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <input type="text" id="security-answer" class="form-control" placeholder="Answer">
+            </div>
+            <button class="btn btn-primary" onclick="register()"><i class="fas fa-user-plus"></i> Register</button>
+            <button class="btn btn-link" onclick="toggleSection('login')">Back to Login</button>
+          </div>
+
+          <!-- Password Recovery Section -->
+          <div id="recover-password" class="card p-4 mt-4" style="display: none;">
+            <h2>Recover Password</h2>
+            <div class="form-group">
+              <input type="text" id="recover-username" class="form-control" placeholder="Enter your username" onblur="fetchSecurityQuestion()">
+            </div>
+            <div class="form-group">
+              <label for="recover-security-question">Security Question</label>
+              <input type="text" id="recover-security-question" class="form-control" disabled>
+            </div>
+            <div class="form-group">
+              <input type="text" id="recover-security-answer" class="form-control" placeholder="Enter your security answer">
+            </div>
+            <div class="form-group">
+              <input type="password" id="new-password" class="form-control" placeholder="New Password">
+            </div>
+            <button class="btn btn-primary" onclick="recoverPassword()">Recover Password</button>
+            <button class="btn btn-link" onclick="toggleSection('login')">Back to Login</button>
+          </div>
+
+          <!-- Dashboard Section -->
+          <div id="dashboard" class="mt-4" style="display: none;">
+            <h2>Dashboard</h2>
+            <div id="daily-target" class="alert alert-primary alert-box">
+              Daily Target: <span id="daily-target-value">0</span> 
+            </div>
+            <div id="calories-left" class="alert alert-info alert-box" style="display: none;">
+              Calories Left: <span id="calories-left-value">0</span> 
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card p-4 mt-4">
+                  <h3>Set Daily Target</h3>
+                  <div class="form-group">
+                    <input type="number" id="daily-target" class="form-control" placeholder="Daily Target">
+                  </div>
+                  <button class="btn btn-primary" onclick="setTarget()"><i class="fas fa-bullseye"></i> Set Target</button>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card p-4 mt-4">
+                  <h3>Add Meal</h3>
+                  <div class="form-group">
+                    <input type="text" id="meal-name" class="form-control" placeholder="Meal Name">
+                  </div>
+                  <div class="form-group">
+                    <input type="number" id="meal-calories" class="form-control" placeholder="Calories">
+                  </div>
+                  <button class="btn btn-primary" onclick="addMeal()"><i class="fas fa-utensils"></i> Add Meal</button>
+                </div>
+              </div>
+            </div>
+            <div class="card p-4 mt-4">
+              <h3>Meals</h3>
+              <ul id="meals-list" class="list-group"></ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="scripts.js"></script>
+</body>
+</html>

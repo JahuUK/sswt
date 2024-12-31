@@ -1,0 +1,149 @@
+/* General Body Styling */
+body {
+  font-family: 'Roboto', sans-serif; /* Ensure Roboto is applied */
+  background-color: #f8f9fa; /* Light background */
+}
+
+/* Header Styling */
+h1 {
+  color: #007bff; /* Bright blue color for the header */
+}
+
+/* Card Styling */
+.card {
+  border: 1px solid #e0e0e0; /* Light gray border */
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: transform 0.2s ease; /* Smooth hover effect */
+}
+
+.card:hover {
+  transform: translateY(-5px); /* Slight upward motion on hover */
+}
+
+/* Button Styling */
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+.btn-link {
+  display: inline-block;
+  color: #007bff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.btn-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Input Styling */
+input {
+  margin-bottom: 15px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+}
+
+input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+input::placeholder {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Label Styling */
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: inline-block;
+}
+
+/* Success and Error Input States */
+.input-error {
+  border-color: #dc3545;
+  background-color: #f8d7da;
+}
+
+.input-success {
+  border-color: #28a745;
+  background-color: #d4edda;
+}
+
+/* Section Transitions */
+#login, #register, #reset-password, #dashboard {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+/* Delete Button for Meals */
+.btn-delete {
+  padding: 0.2rem 0.5rem; /* Minimal padding */
+  font-size: 0.8rem; /* Smaller font size */
+  border-radius: 50%; /* Circular button */
+  width: 30px; /* Fixed width */
+  height: 30px; /* Fixed height */
+  background-color: #dc3545; /* Red background */
+  color: white; /* White icon */
+  border: none; /* Remove border */
+  display: flex; /* Flexbox for centering */
+  justify-content: center; /* Center icon horizontally */
+  align-items: center; /* Center icon vertically */
+  cursor: pointer; /* Pointer cursor */
+}
+
+.btn-delete:hover {
+  background-color: #c82333; /* Darker red on hover */
+}
+
+/* Meal List Item Styling */
+.list-group-item {
+  display: flex; /* Use flexbox to align elements */
+  justify-content: space-between; /* Space text and button apart */
+  align-items: center; /* Vertically align text and button */
+  padding: 0.5rem 1rem; /* Adjust padding */
+}
+
+/* Alert Box Styling (Daily Target & Calories Left) */
+.alert-box {
+  font-size: 1.5rem; /* Consistent font size */
+  font-weight: bold; /* Bold text */
+  color: #003366; /* Dark blue font color */
+  text-align: center; /* Center-align text */
+  padding: 1rem; /* Padding for spacing */
+  border-radius: 0.5rem; /* Rounded corners */
+  margin-bottom: 1rem; /* Space between alert boxes */
+}
+
+/* Reset Password Section */
+#reset-password {
+  display: none;
+  margin-top: 20px;
+}
+
+/* General Button Styling */
+button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+}
