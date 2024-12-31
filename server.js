@@ -178,6 +178,42 @@ app.delete('/api/delete-meal', async (req, res) => {
   }
 });
 
+// Delete a common meal
+app.delete('/api/common-meals/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).send('Missing meal ID.');
+  }
+
+  try {
+    await sql.query`DELETE FROM CommonMeals WHERE id = ${id}`;
+    res.send('Common meal deleted successfully.');
+  } catch (err) {
+    console.error('Error deleting common meal:', err.message);
+    res.status(500).send('Error deleting common meal.');
+  }
+});
+
+
+// Save a common meal
+app.post('/api/common-meals', async (req, res) => {
+  const { userId, meal } = req.body;
+
+  if (!userId || !meal || !meal.name || !meal.calories) {
+    return res.status(400).send('Invalid meal data.');
+  }
+
+  try {
+    await sql.query`INSERT INTO CommonMeals (userId, name, calories) VALUES (${userId}, ${meal.name}, ${meal.calories})`;
+    res.status(201).send('Common meal added successfully.');
+  } catch (err) {
+    console.error('Error adding common meal:', err.message);
+    res.status(500).send('Error adding common meal.');
+  }
+});
+
+
 
 // Fetch security question
 app.get('/api/security-question', async (req, res) => {
@@ -244,6 +280,51 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     console.error('Error during login:', err.message);
     res.status(500).send('Error logging in');
+  }
+});
+
+// Adds common meals
+app.post('/api/add-common-meal', async (req, res) => {
+  const { userId, meal } = req.body;
+
+  try {
+    await sql.query`INSERT INTO CommonMeals (userId, name, calories) VALUES (${userId}, ${meal.name}, ${meal.calories})`;
+    res.send('Common meal added');
+  } catch (err) {
+    console.error('Error adding common meal:', err.message);
+    res.status(500).send('Error adding common meal');
+  }
+});
+
+// Fetch common meals
+app.get('/api/common-meals', async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).send('Missing userId.');
+  }
+
+  try {
+    const result = await sql.query`SELECT * FROM CommonMeals WHERE userId = ${userId}`;
+    res.send(result.recordset);
+  } catch (err) {
+    console.error('Error fetching common meals:', err.message);
+    res.status(500).send('Error fetching common meals.');
+  }
+});
+
+
+
+// Save a common meal
+app.post('/api/common-meal', async (req, res) => {
+  const { userId, name, calories } = req.body;
+
+  try {
+    await sql.query`INSERT INTO Meals (userId, name, calories) VALUES (${userId}, ${name}, ${calories})`;
+    res.status(200).send('Common meal saved successfully');
+  } catch (err) {
+    console.error('Error saving common meal:', err);
+    res.status(500).send('Error saving common meal');
   }
 });
 

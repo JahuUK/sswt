@@ -152,3 +152,40 @@ button {
   font-size: 0.8rem;
   color: #6c757d; /* Bootstrap's muted text color */
 }
+
+#common-meals-list .btn {
+  font-size: 0.9rem;
+  padding: 0.3rem 0.7rem;
+}
+
+.card {
+  min-height: 200px; /* Set a minimum height for consistency */
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.2rem;
+}
+
+.meals-delete-btn {
+  width: auto; /* Adjust width */
+  padding: 0.25rem 0.5rem; /* Reduce padding for a smaller button */
+  font-size: 0.85rem; /* Smaller font size */
+  border-radius: 0.2rem; /* Slightly rounded corners */
+}
+
+#toggle-common-meals {
+  font-size: 0.8rem;    /* Smaller font size */
+  padding: 2px 8px;     /* Compact padding */
+  line-height: 2;       /* Reduce height */
+  border-radius: 4px;   /* Rounded corners */
+  width: auto;          /* Automatically adjust width to content */
+  display: inline-block; /* Ensure it doesn't stretch */
+}
+
+
+#toggle-common-meals:hover {
+  text-decoration: underline;
+}

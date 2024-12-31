@@ -88,44 +88,82 @@
             <button class="btn btn-link" onclick="toggleSection('login')">Back to Login</button>
           </div>
 
-          <!-- Dashboard Section -->
-          <div id="dashboard" class="mt-4" style="display: none;">
-            <h2>Dashboard</h2>
-            <div id="daily-target" class="alert alert-primary alert-box">
-              Daily Target: <span id="daily-target-value">0</span> 
-            </div>
-            <div id="calories-left" class="alert alert-info alert-box" style="display: none;">
-              Calories Left: <span id="calories-left-value">0</span> 
-            </div>
-            <div class="row">
-              <div class="col-md-6">
-                <div class="card p-4 mt-4">
-                  <h3>Set Daily Target</h3>
-                  <div class="form-group">
-                    <input type="number" id="daily-target" class="form-control" placeholder="Daily Target">
-                  </div>
-                  <button class="btn btn-primary" onclick="setTarget()"><i class="fas fa-bullseye"></i> Set Target</button>
-                </div>
+      <!-- Dashboard Section -->
+      <div id="dashboard" class="mt-4" style="display: none;">
+        <h2>Dashboard</h2>
+
+        <!-- Daily Target and Calories Left Alerts -->
+        <div id="daily-target" class="alert alert-primary alert-box">
+          Daily Target: <span id="daily-target-value">0</span> 
+        </div>
+        <div id="calories-left" class="alert alert-info alert-box" style="display: none;">
+          Calories Left: <span id="calories-left-value">0</span> 
+        </div>
+
+        <!-- Daily Target and Add Meal Row -->
+        <div class="row mt-4">
+          <!-- Set Daily Target -->
+          <div class="col-md-6">
+            <div class="card p-4 h-100 d-flex flex-column">
+              <h3>Set Daily Target</h3>
+              <div class="form-group">
+                <input type="number" id="daily-target-input" class="form-control" placeholder="Daily Target">
               </div>
-              <div class="col-md-6">
-                <div class="card p-4 mt-4">
-                  <h3>Add Meal</h3>
-                  <div class="form-group">
-                    <input type="text" id="meal-name" class="form-control" placeholder="Meal Name">
-                  </div>
-                  <div class="form-group">
-                    <input type="number" id="meal-calories" class="form-control" placeholder="Calories">
-                  </div>
-                  <button class="btn btn-primary" onclick="addMeal()"><i class="fas fa-utensils"></i> Add Meal</button>
-                </div>
+              <div class="mt-auto">
+                <button class="btn btn-primary w-100" onclick="setTarget()">
+                  <i class="fas fa-bullseye"></i> Set Target
+                </button>
               </div>
-            </div>
-            <div class="card p-4 mt-4">
-              <h3>Meals</h3>
-              <ul id="meals-list" class="list-group"></ul>
             </div>
           </div>
 
+          <!-- Add Meal -->
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <h3>Add Meal</h3>
+              <div class="form-group">
+                <input type="text" id="meal-name" class="form-control" placeholder="Meal Name">
+              </div>
+              <div class="form-group">
+                <input type="number" id="meal-calories" class="form-control" placeholder="Calories">
+              </div>
+              <button class="btn btn-primary w-100" onclick="addMeal()"><i class="fas fa-utensils"></i> Add Meal</button>
+            </div>
+          </div>
+        </div>
+
+          <!-- Common Meals Section -->
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <div class="card p-4">
+                <h3 class="d-flex justify-content-between align-items-center">
+                  Add Common Meals
+                  <button class="btn btn-sm btn-outline-secondary" id="toggle-common-meals" onclick="toggleCommonMeals()">
+                    <span id="toggle-text">Hide</span>
+                  </button>
+                </h3>
+                <div id="common-meals-container">
+                  <ul id="common-meals-list" class="list-group mb-3"></ul>
+                </div>
+                <div class="form-group">
+                  <input type="text" id="common-meal-name" class="form-control" placeholder="Meal Name">
+                </div>
+                <div class="form-group">
+                  <input type="number" id="common-meal-calories" class="form-control" placeholder="Calories">
+                </div>
+                <button class="btn btn-primary w-100" onclick="addCommonMeal()">
+                  <i class="fas fa-save"></i> Save Common Meal
+                </button>
+              </div>
+            </div>
+          </div>
+
+        
+
+        <!-- Meals Section -->
+        <div class="card p-4 mt-4">
+          <h3>Meals</h3>
+          <ul id="meals-list" class="list-group"></ul>
         </div>
       </div>
     </div>

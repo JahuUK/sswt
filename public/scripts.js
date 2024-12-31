@@ -1,6 +1,8 @@
 let userId = null;
+let commonMeals = []; // Array to store common meals
 
-// Utility function to toggle visibility of sections
+
+// Utility: Toggle section visibility
 function toggleSection(sectionToShow) {
   const sections = ['login', 'register', 'recover-password', 'dashboard'];
   sections.forEach(section => {
@@ -11,17 +13,14 @@ function toggleSection(sectionToShow) {
   });
 }
 
-// Register a new user
+// User Registration
 async function register() {
   const username = document.getElementById('reg-username').value;
   const password = document.getElementById('reg-password').value;
   const securityQuestion = document.getElementById('security-question').value;
   const securityAnswer = document.getElementById('security-answer').value;
 
-  if (!securityQuestion) {
-    alert('Please select a security question.');
-    return;
-  }
+  if (!securityQuestion) return alert('Please select a security question.');
 
   try {
     const response = await fetch('/api/register', {
@@ -42,7 +41,7 @@ async function register() {
   }
 }
 
-// Login user
+// User Login
 async function login() {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
@@ -57,11 +56,8 @@ async function login() {
 
     if (response.ok) {
       const data = await response.json();
-      if (rememberMe) {
-        localStorage.setItem('token', data.token);
-      } else {
-        sessionStorage.setItem('token', data.token);
-      }
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('token', data.token);
       userId = data.userId;
       console.log(`User logged in. userId: ${userId}`);
       showDashboard();
@@ -74,7 +70,7 @@ async function login() {
   }
 }
 
-// Password recovery
+// Password Recovery
 async function recoverPassword() {
   const username = document.getElementById('recover-username').value;
   const securityAnswer = document.getElementById('recover-security-answer').value;
@@ -98,14 +94,11 @@ async function recoverPassword() {
   }
 }
 
-// Set daily target
+// Set Daily Target
 async function setTarget() {
-  const dailyTarget = document.getElementById('daily-target').value;
+  const dailyTarget = document.getElementById('daily-target-input').value;
 
-  if (!dailyTarget || dailyTarget <= 0) {
-    alert('Please enter a valid daily target.');
-    return;
-  }
+  if (!dailyTarget || dailyTarget <= 0) return alert('Please enter a valid daily target.');
 
   try {
     const response = await fetch('/api/set-target', {
@@ -118,7 +111,6 @@ async function setTarget() {
       console.log(`Daily target successfully set to ${dailyTarget}`);
       updateDailyTargetDisplay(dailyTarget);
     } else {
-      console.error('Error setting daily target.');
       alert('Failed to set daily target. Please try again.');
     }
   } catch (err) {
@@ -126,15 +118,12 @@ async function setTarget() {
   }
 }
 
-// Add a new meal
+// Add Meal
 async function addMeal() {
   const name = document.getElementById('meal-name').value;
   const calories = document.getElementById('meal-calories').value;
 
-  if (!name || !calories || calories <= 0) {
-    alert('Please provide valid meal details.');
-    return;
-  }
+  if (!name || !calories || calories <= 0) return alert('Please provide valid meal details.');
 
   try {
     await fetch('/api/add-meal', {
@@ -152,7 +141,7 @@ async function addMeal() {
   }
 }
 
-// Load meals
+// Load Meals
 async function loadMeals() {
   try {
     const response = await fetch(`/api/meals?userId=${userId}`);
@@ -164,20 +153,15 @@ async function loadMeals() {
     meals.forEach(meal => {
       const li = document.createElement('li');
       li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-
-      // Format timestamp
-      const timestamp = new Date(meal.timestamp).toLocaleString();
-
       li.innerHTML = `
-        <div>
-          <span>${meal.name} - ${meal.calories} calories</span>
-          <small class="text-muted d-block">${timestamp}</small>
-        </div>
-        <button class="btn-delete" onclick="deleteMeal(${meal.id})">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      `;
-
+      <div>
+        <span>${meal.name} - ${meal.calories} calories</span>
+        <small class="text-muted d-block">${new Date(meal.timestamp).toLocaleString()}</small>
+      </div>
+      <button class="btn btn-sm btn-danger meals-delete-btn" onclick="deleteMeal(${meal.id})">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    `;
       mealsList.appendChild(li);
     });
   } catch (err) {
@@ -185,8 +169,7 @@ async function loadMeals() {
   }
 }
 
-
-// Delete a meal
+// Delete Meal
 async function deleteMeal(mealId) {
   try {
     const response = await fetch('/api/delete-meal', {
@@ -196,7 +179,7 @@ async function deleteMeal(mealId) {
     });
 
     if (response.ok) {
-      alert('Meal deleted successfully!');
+      console.log('Meal deleted successfully!');
       loadMeals();
       calculateCaloriesLeft();
     } else {
@@ -207,24 +190,23 @@ async function deleteMeal(mealId) {
   }
 }
 
-// Calculate calories left
+// Calculate Calories Left
 async function calculateCaloriesLeft() {
   try {
-    const targetResponse = await fetch(`/api/get-target?userId=${userId}`);
-    const mealsResponse = await fetch(`/api/meals?userId=${userId}`);
+    const [targetResponse, mealsResponse] = await Promise.all([
+      fetch(`/api/get-target?userId=${userId}`),
+      fetch(`/api/meals?userId=${userId}`)
+    ]);
 
     if (targetResponse.ok && mealsResponse.ok) {
       const targetData = await targetResponse.json();
       const mealsData = await mealsResponse.json();
 
       const dailyTarget = targetData.dailyTarget || 0;
-      const totalCaloriesConsumed = mealsData.reduce(
-        (total, meal) => total + parseInt(meal.calories, 10),
-        0
-      );
+      const totalCaloriesConsumed = mealsData.reduce((total, meal) => total + parseInt(meal.calories, 10), 0);
+      const caloriesLeft = Math.max(dailyTarget - totalCaloriesConsumed, 0);
 
-      const caloriesLeft = dailyTarget - totalCaloriesConsumed;
-      document.getElementById('calories-left-value').textContent = `${caloriesLeft > 0 ? caloriesLeft : 0} calories`;
+      document.getElementById('calories-left-value').textContent = `${caloriesLeft} calories`;
       document.getElementById('calories-left').style.display = 'block';
     } else {
       console.error('Failed to fetch target or meals.');
@@ -234,15 +216,13 @@ async function calculateCaloriesLeft() {
   }
 }
 
-// Update daily target display
+// Update Daily Target Display
 function updateDailyTargetDisplay(dailyTarget) {
   const dailyTargetElement = document.getElementById('daily-target-value');
-  if (dailyTargetElement) {
-    dailyTargetElement.textContent = `${dailyTarget} calories`;
-  }
+  if (dailyTargetElement) dailyTargetElement.textContent = `${dailyTarget} calories`;
 }
 
-// Check session
+// Check Session
 function checkSession() {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   if (token) {
@@ -266,22 +246,17 @@ function logout() {
   toggleSection('login');
 }
 
-// Show dashboard
+// Show Dashboard
 async function showDashboard() {
-  toggleSection('dashboard'); // Show the dashboard section
-
+  toggleSection('dashboard');
   try {
-    // Fetch and display the daily target
     const response = await fetch(`/api/get-target?userId=${userId}`);
     if (response.ok) {
-      const data = await response.json();
-      const dailyTarget = data.dailyTarget || 0;
-      updateDailyTargetDisplay(dailyTarget);
+      const { dailyTarget } = await response.json();
+      updateDailyTargetDisplay(dailyTarget || 0);
     } else {
-      console.error('Failed to fetch daily target. Response status:', response.status);
+      console.error('Failed to fetch daily target.');
     }
-
-    // Load meals and calculate calories left
     loadMeals();
     calculateCaloriesLeft();
   } catch (err) {
@@ -289,5 +264,224 @@ async function showDashboard() {
   }
 }
 
-// Ensure the session is checked after DOM is loaded
-document.addEventListener('DOMContentLoaded', checkSession);
+async function addMeal() {
+  const name = document.getElementById('meal-name').value;
+  const calories = parseInt(document.getElementById('meal-calories').value, 10);
+
+  if (!name || isNaN(calories) || calories <= 0) {
+    alert('Please enter a valid meal name and calorie count.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/add-meal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, meal: { name, calories, date: new Date() } }),
+    });
+
+    if (response.ok) {
+      console.log('Meal added successfully!');
+      loadMeals(); // Reload the meals list
+      calculateCaloriesLeft(); // Recalculate calories left
+      document.getElementById('meal-name').value = '';
+      document.getElementById('meal-calories').value = '';
+    } else {
+      alert('Error adding meal. Please try again.');
+    }
+  } catch (err) {
+    console.error('Error adding meal:', err);
+  }
+}
+
+function renderMeals(meals) {
+  const mealsList = document.getElementById('meals-list');
+  mealsList.innerHTML = ''; // Clear the existing list
+
+  meals.forEach((meal) => {
+    const listItem = document.createElement('li');
+    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+    listItem.innerHTML = `
+      <span>${meal.name} - ${meal.calories} calories</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteMeal(${meal.id})">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    `;
+
+    mealsList.appendChild(listItem);
+  });
+}
+
+async function deleteMeal(mealId) {
+  try {
+    const response = await fetch(`/api/delete-meal`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mealId }),
+    });
+
+    if (response.ok) {
+      console.log('Meal deleted successfully!');
+      loadMeals(); // Reload the meals list
+      calculateCaloriesLeft(); // Recalculate calories left
+    } else {
+      alert('Error deleting meal. Please try again.');
+    }
+  } catch (err) {
+    console.error('Error deleting meal:', err);
+  }
+}
+
+// Render Common Meals list
+function renderCommonMeals() {
+  const commonMealsList = document.getElementById('common-meals-list');
+  commonMealsList.innerHTML = ''; // Clear the list
+
+  commonMeals.forEach((meal, index) => {
+    const listItem = document.createElement('li');
+    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+    listItem.innerHTML = `
+      <span>${meal.name} - ${meal.calories} calories</span>
+      <div>
+        <button class="btn btn-primary btn-sm mr-2" onclick="addMealFromCommon(${index})">
+          <i class="fas fa-plus"></i> Add
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCommonMeal(${meal.id})">
+          <i class="fas fa-trash-alt"></i> Delete
+        </button>
+      </div>
+    `;
+
+    commonMealsList.appendChild(listItem);
+  });
+
+  if (commonMeals.length === 0) {
+    commonMealsList.innerHTML = '<li class="list-group-item text-center">No common meals added yet.</li>';
+  }
+}
+
+async function deleteCommonMeal(mealId) {
+  try {
+    const response = await fetch(`/api/common-meals/${mealId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      console.error('Error deleting common meal:', response.statusText);
+      alert('Failed to delete common meal.');
+      return;
+    }
+
+    // Remove the meal from the local commonMeals array
+    commonMeals = commonMeals.filter(meal => meal.id !== mealId);
+
+    // Re-render the common meals
+    renderCommonMeals();
+
+    console.log('Common meal deleted successfully.');
+  } catch (err) {
+    console.error('Error deleting common meal:', err);
+    alert('Error deleting common meal.');
+  }
+}
+
+
+// Add a meal from the Common Meals section
+async function addCommonMeal() {
+  const name = document.getElementById('common-meal-name').value;
+  const calories = parseInt(document.getElementById('common-meal-calories').value, 10);
+
+  if (!name || isNaN(calories) || calories <= 0) {
+    alert('Please enter valid meal details.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/common-meals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, meal: { name, calories } }),
+    });
+
+    if (response.ok) {
+      console.log('Common meal saved successfully!');
+      document.getElementById('common-meal-name').value = '';
+      document.getElementById('common-meal-calories').value = '';
+      loadCommonMeals(); // Refresh the Common Meals list
+    } else {
+      alert('Error saving common meal. Please try again.');
+    }
+  } catch (err) {
+    console.error('Error saving common meal:', err);
+  }
+}
+
+async function addMealFromCommon(index) {
+  const meal = commonMeals[index];
+
+  if (!meal) {
+    console.error(`Meal not found at index: ${index}`);
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/add-meal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, meal: { name: meal.name, calories: meal.calories, date: new Date() } }),
+    });
+
+    if (response.ok) {
+      console.log('Meal added successfully!');
+      loadMeals(); // Refresh the Meals list
+      calculateCaloriesLeft(); // Update Calories Left
+    } else {
+      alert('Error adding meal. Please try again.');
+    }
+  } catch (err) {
+    console.error('Error adding meal:', err);
+  }
+}
+
+
+async function loadCommonMeals() {
+  try {
+    const response = await fetch(`/api/common-meals?userId=${userId}`);
+    if (!response.ok) {
+      console.error('Error fetching common meals:', response.statusText);
+      return;
+    }
+
+    commonMeals = await response.json();
+    renderCommonMeals(); // Refresh the Common Meals list
+  } catch (err) {
+    console.error('Error fetching common meals:', err);
+  }
+}
+
+function toggleCommonMeals() {
+  const container = document.getElementById('common-meals-container');
+  const toggleText = document.getElementById('toggle-text');
+  if (container.style.display === 'none') {
+    container.style.display = 'block';
+    toggleText.textContent = 'Hide';
+  } else {
+    container.style.display = 'none';
+    toggleText.textContent = 'Show';
+  }
+}
+
+
+
+
+// Wait for the DOM to fully load before running these initializations
+document.addEventListener('DOMContentLoaded', () => {
+  checkSession(); // Ensure the user is logged in
+  loadCommonMeals(); // Load the common meals
+  loadMeals(); // Load the regular meals
+  calculateCaloriesLeft(); // Calculate calories left
+});
+
+
