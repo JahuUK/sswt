@@ -57,8 +57,10 @@ async function login() {
     if (response.ok) {
       const data = await response.json();
       const storage = rememberMe ? localStorage : sessionStorage;
+
       storage.setItem('token', data.token);
-      userId = data.userId;
+      userId = data.userId; // Ensure global userId is set
+
       console.log(`User logged in. userId: ${userId}`);
       showDashboard();
     } else {
@@ -69,6 +71,8 @@ async function login() {
     alert('Failed to log in. Please try again.');
   }
 }
+
+
 
 // Password Recovery
 async function recoverPassword() {
@@ -96,26 +100,32 @@ async function recoverPassword() {
 
 // Set Daily Target
 async function setTarget() {
-  const dailyTarget = document.getElementById('daily-target-input').value;
+    const dailyTargetInput = document.getElementById('daily-target-input');
+    const dailyTarget = parseInt(dailyTargetInput.value, 10);
 
-  if (!dailyTarget || dailyTarget <= 0) return alert('Please enter a valid daily target.');
-
-  try {
-    const response = await fetch('/api/set-target', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, dailyTarget }),
-    });
-
-    if (response.ok) {
-      console.log(`Daily target successfully set to ${dailyTarget}`);
-      updateDailyTargetDisplay(dailyTarget);
-    } else {
-      alert('Failed to set daily target. Please try again.');
+    if (isNaN(dailyTarget) || dailyTarget <= 0) {
+        alert('Please enter a valid daily target.');
+        return;
     }
-  } catch (err) {
-    console.error('Error setting daily target:', err);
-  }
+
+    try {
+        const response = await fetch('/api/set-target', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, dailyTarget }),
+        });
+
+        if (response.ok) {
+            alert('Daily target updated successfully!');
+            updateDailyTargetDisplay(dailyTarget); // Update the display value
+            calculateCaloriesLeft(); // Recalculate the calories left
+        } else {
+            alert('Failed to update daily target. Please try again.');
+        }
+    } catch (err) {
+        console.error('Error setting daily target:', err);
+        alert('Error updating daily target. Please try again.');
+    }
 }
 
 // Add Meal
@@ -143,31 +153,46 @@ async function addMeal() {
 
 // Load Meals
 async function loadMeals() {
+  if (!userId) {
+    console.error('User ID is null. Unable to load meals.');
+    return;
+  }
+
   try {
     const response = await fetch(`/api/meals?userId=${userId}`);
+    if (!response.ok) {
+      console.error(`Failed to fetch meals. Status: ${response.status}`);
+      return;
+    }
+
     const meals = await response.json();
 
+    // Clear existing meals
     const mealsList = document.getElementById('meals-list');
     mealsList.innerHTML = '';
 
+    // Render the meals
     meals.forEach(meal => {
       const li = document.createElement('li');
       li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+      
       li.innerHTML = `
-      <div>
-        <span>${meal.name} - ${meal.calories} calories</span>
-        <small class="text-muted d-block">${new Date(meal.timestamp).toLocaleString()}</small>
-      </div>
-      <button class="btn btn-sm btn-danger meals-delete-btn" onclick="deleteMeal(${meal.id})">
-        <i class="fas fa-trash-alt"></i>
-      </button>
-    `;
+        <div>
+          <span>${meal.name} - ${meal.calories} calories</span>
+          <small class="text-muted d-block">${new Date(meal.timestamp).toLocaleString()}</small>
+        </div>
+        <button class="btn-delete" onclick="deleteMeal(${meal.id})">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      `;
+      
       mealsList.appendChild(li);
     });
   } catch (err) {
     console.error('Error loading meals:', err.message);
   }
 }
+
 
 // Delete Meal
 async function deleteMeal(mealId) {
@@ -223,32 +248,55 @@ function updateDailyTargetDisplay(dailyTarget) {
 }
 
 // Check Session
-function checkSession() {
+async function checkSession() {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      userId = payload.id;
-      showDashboard();
-    } catch (err) {
-      console.error('Invalid token:', err);
-      logout();
-    }
-  } else {
+  const navBar = document.querySelector('nav');
+
+  if (!token) {
+    // Redirect to login if no token is present
     toggleSection('login');
+    if (navBar) navBar.style.display = 'none';
+    userId = null;
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/verify-token', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      userId = data.userId; // Set the global userId
+      console.log(`Session verified. User ID: ${userId}`);
+      showDashboard(); // Show the dashboard
+      if (navBar) navBar.style.display = 'flex'; // Show nav bar
+    } else {
+      throw new Error('Invalid session');
+    }
+  } catch (err) {
+    console.error('Error verifying session:', err);
+    toggleSection('login');
+    if (navBar) navBar.style.display = 'none';
+    userId = null; // Reset userId if session verification fails
   }
 }
 
-// Logout
-function logout() {
-  localStorage.removeItem('token');
-  sessionStorage.removeItem('token');
-  toggleSection('login');
-}
 
 // Show Dashboard
 async function showDashboard() {
-  toggleSection('dashboard');
+  toggleSection('dashboard'); // Show the dashboard section
+  const navBar = document.querySelector('nav');
+  if (navBar) {
+    navBar.style.display = 'flex'; // Ensure nav bar is displayed
+  }
+
+  if (!userId) {
+    console.warn('User ID is missing. Cannot load dashboard.');
+    return;
+  }
+
   try {
     const response = await fetch(`/api/get-target?userId=${userId}`);
     if (response.ok) {
@@ -263,6 +311,9 @@ async function showDashboard() {
     console.error('Error loading dashboard:', err);
   }
 }
+
+
+
 
 async function addMeal() {
   const name = document.getElementById('meal-name').value;
@@ -473,15 +524,48 @@ function toggleCommonMeals() {
   }
 }
 
+function navigateTo(section) {
+  alert(`Navigating to ${section} (This feature is not yet implemented).`);
+}
+
+function logout(event) {
+  event.preventDefault();
+  localStorage.removeItem('token');
+  sessionStorage.removeItem('token');
+  userId = null; // Reset the userId
+  const navBar = document.querySelector('nav');
+  if (navBar) {
+    navBar.style.display = 'none'; // Hide the nav bar
+  }
+  toggleSection('login'); // Redirect to login
+}
+
+
 
 
 
 // Wait for the DOM to fully load before running these initializations
-document.addEventListener('DOMContentLoaded', () => {
-  checkSession(); // Ensure the user is logged in
-  loadCommonMeals(); // Load the common meals
-  loadMeals(); // Load the regular meals
-  calculateCaloriesLeft(); // Calculate calories left
+document.addEventListener('DOMContentLoaded', async () => {
+  const navBar = document.querySelector('nav');
+  
+  // Hide the nav bar by default
+  if (navBar) {
+    navBar.style.display = 'none';
+  }
+
+  try {
+    await checkSession(); // Ensure the user is logged in and set userId
+
+    if (userId) {
+      // If user is logged in, load data and show navigation bar
+      navBar.style.display = 'flex';
+      await loadCommonMeals();
+      await loadMeals();
+      await calculateCaloriesLeft();
+    }
+  } catch (err) {
+    console.error('Error during initialization:', err);
+  }
 });
 
 

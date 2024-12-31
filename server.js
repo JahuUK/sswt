@@ -133,6 +133,17 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Verify Token Endpoint
+app.post('/api/verify-token', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) return res.status(401).send('Token missing');
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(401).send('Invalid token');
+    res.send({ userId: decoded.id }); // Ensure userId is sent back
+  });
+});
 
 
 // Add meal 
@@ -282,6 +293,12 @@ app.post('/api/login', async (req, res) => {
     res.status(500).send('Error logging in');
   }
 });
+
+app.post('/api/logout', (req, res) => {
+  // Invalidate session logic here (e.g., clear token, etc.)
+  res.status(200).send({ message: 'Logged out successfully' });
+});
+
 
 // Adds common meals
 app.post('/api/add-common-meal', async (req, res) => {

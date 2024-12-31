@@ -6,21 +6,30 @@
   <title>Super Simple Weight Tracker</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="styles.css">
   <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <!-- Favicon -->
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
 
 </head>
 <body>
+  <!-- Centered Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 justify-content-center">
+    <div class="navbar-nav">
+        <a class="nav-link mx-3" href="#" onclick="showDashboard()">Daily Target</a>
+        <a class="nav-link mx-3" href="#" onclick="toggleSection('calorie-history')">Calorie History</a>
+        <a class="nav-link mx-3" href="#" onclick="toggleSection('weight-tracking')">Weight Tracking</a>
+        <a class="nav-link mx-3 text-danger" href="#" onclick="logout(event)">Log Out</a>
+
+    </div>
+</nav>
+
   <div class="container">
     <div id="app" class="mt-5">
-      <h1 class="text-center">SSWT</h1>
-      <div class="row">
         <div class="col-md-6 offset-md-3">
 
           <!-- Login Section -->
@@ -37,8 +46,8 @@
               <label for="remember-me" class="form-check-label">Remember Me</label>
             </div>
             <button class="btn btn-primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> Login</button>
-            <button class="btn btn-link" onclick="toggleSection('register')">Register Here</button>
-            <button class="btn btn-link" onclick="toggleSection('recover-password')">Forgot Password?</button>
+            <button class="btn btn-primary" onclick="toggleSection('register')">Register Here</button>
+            <button class="btn btn-primary" onclick="toggleSection('recover-password')">Forgot Password?</button>
           </div>
 
           <!-- Register Section -->

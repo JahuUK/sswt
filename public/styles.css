@@ -95,24 +95,29 @@ label {
 }
 
 /* Delete Button for Meals */
-.btn-delete {
-  padding: 0.2rem 0.5rem; /* Minimal padding */
-  font-size: 0.8rem; /* Smaller font size */
-  border-radius: 50%; /* Circular button */
-  width: 30px; /* Fixed width */
-  height: 30px; /* Fixed height */
-  background-color: #dc3545; /* Red background */
-  color: white; /* White icon */
+.btn-delete-icon {
+  background-color: #dc3545; /* Bootstrap red */
   border: none; /* Remove border */
-  display: flex; /* Flexbox for centering */
-  justify-content: center; /* Center icon horizontally */
-  align-items: center; /* Center icon vertically */
-  cursor: pointer; /* Pointer cursor */
+  color: white; /* White icon color */
+  width: 36px; /* Adjust size */
+  height: 36px; /* Adjust size */
+  display: flex; /* Center icon */
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer on hover */
+  transition: background-color 0.3s ease;
 }
+
+.btn-delete-icon:hover {
+  background-color: #c82333; /* Darker red on hover */
+}
+
 
 .btn-delete:hover {
   background-color: #c82333; /* Darker red on hover */
 }
+
 
 /* Meal List Item Styling */
 .list-group-item {
@@ -188,4 +193,44 @@ button {
 
 #toggle-common-meals:hover {
   text-decoration: underline;
+}
+
+.navbar {
+  border-bottom: 2px solid #e3e3e3;
+}
+
+.navbar .nav-link {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.navbar .nav-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.navbar .nav-link.text-danger {
+  color: #dc3545;
+}
+
+.navbar .nav-link.text-danger:hover {
+  color: #b02a37;
+}
+
+.btn-delete {
+  width: 40px; /* Set the desired width */
+  height: 40px; /* Optional: Adjust the height */
+  padding: 0; /* Remove extra padding */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #dc3545; /* Ensure it stays red */
+  color: white;
+  border: none;
+  border-radius: 4px; /* Optional: Add a slight border-radius for styling */
+}
+
+.btn-delete i {
+  font-size: 16px; /* Adjust icon size */
 }
