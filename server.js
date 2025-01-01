@@ -346,6 +346,112 @@ app.post('/api/common-meal', async (req, res) => {
 });
 
 
+// Endpoint to log weight
+// Log a weight entry
+app.post('/api/weight-log', async (req, res) => {
+  const { userId, weight } = req.body;
+
+  // Validate input
+  if (!userId || !weight) {
+    return res.status(400).send('Invalid input.');
+  }
+
+  try {
+    const timestamp = new Date().toISOString(); // Generate current timestamp
+
+    // Insert weight log into the WeightTracking database
+    await sql.query`INSERT INTO WeightTracking (userId, weight, timestamp) VALUES (${userId}, ${weight}, ${timestamp})`;
+
+    res.status(200).send('Weight logged successfully');
+  } catch (err) {
+    console.error('Error logging weight:', err);
+    res.status(500).send('Error logging weight');
+  }
+});
+
+
+// Endpoint to fetch weight history
+// Endpoint to fetch weight history with filtering
+app.get('/api/weight-history', async (req, res) => {
+  const { userId, filter } = req.query;
+
+  if (!userId) {
+    return res.status(400).send("User ID is required.");
+  }
+
+  try {
+    let query = `SELECT * FROM WeightTracking WHERE userId = ${userId}`;
+    
+    if (filter && filter !== "all") {
+      const now = new Date();
+      let cutoffDate;
+
+      switch (filter) {
+        case "1day":
+          cutoffDate = new Date(now.setDate(now.getDate() - 1));
+          break;
+        case "7days":
+          cutoffDate = new Date(now.setDate(now.getDate() - 7));
+          break;
+        case "1month":
+          cutoffDate = new Date(now.setMonth(now.getMonth() - 1));
+          break;
+        case "3months":
+          cutoffDate = new Date(now.setMonth(now.getMonth() - 3));
+          break;
+        case "6months":
+          cutoffDate = new Date(now.setMonth(now.getMonth() - 6));
+          break;
+        case "1year":
+          cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
+          break;
+        case "2years":
+          cutoffDate = new Date(now.setFullYear(now.getFullYear() - 2));
+          break;
+        default:
+          break;
+      }
+
+      query += ` AND timestamp >= '${cutoffDate.toISOString()}'`;
+    }
+
+    const result = await sql.query(query);
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching weight history:", error);
+    res.status(500).send("Error fetching weight history.");
+  }
+});
+
+
+// Endpoint to delete weight entry
+app.delete('/api/delete-weight', async (req, res) => {
+  const { weightId } = req.body;
+  console.log(`Received weight ID for deletion: ${weightId}`); // Debug log
+
+  // Validate weightId
+  if (!weightId) {
+    return res.status(400).send('Weight ID is required.');
+  }
+
+  try {
+    // Delete the weight entry with the given weightId
+    const result = await sql.query`DELETE FROM WeightTracking WHERE id = ${weightId}`;
+
+    // Check if the deletion was successful
+    if (result.rowsAffected[0] > 0) {
+      res.send('Weight entry deleted successfully');
+    } else {
+      res.status(404).send('Weight entry not found.');
+    }
+  } catch (err) {
+    console.error('Error deleting weight entry:', err);
+    res.status(500).send('Failed to delete weight entry.');
+  }
+});
+
+
+
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server running on port ${port}`));

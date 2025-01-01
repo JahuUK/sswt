@@ -94,6 +94,28 @@ label {
   pointer-events: none;
 }
 
+.btn-delete {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #dc3545; /* Red background */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-delete:hover {
+  background-color: #c82333; /* Darker red on hover */
+}
+
+.btn-delete i {
+  font-size: 16px; /* Adjust icon size */
+}
+
 /* Delete Button for Meals */
 .btn-delete-icon {
   background-color: #dc3545; /* Bootstrap red */
@@ -112,12 +134,6 @@ label {
 .btn-delete-icon:hover {
   background-color: #c82333; /* Darker red on hover */
 }
-
-
-.btn-delete:hover {
-  background-color: #c82333; /* Darker red on hover */
-}
-
 
 /* Meal List Item Styling */
 .list-group-item {
@@ -218,19 +234,156 @@ button {
   color: #b02a37;
 }
 
-.btn-delete {
-  width: 40px; /* Set the desired width */
-  height: 40px; /* Optional: Adjust the height */
-  padding: 0; /* Remove extra padding */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #dc3545; /* Ensure it stays red */
-  color: white;
-  border: none;
-  border-radius: 4px; /* Optional: Add a slight border-radius for styling */
+
+#weight-tracking .table {
+  margin-top: 40px;
+}
+#weight-tracking .card {
+  margin-bottom: 40px;
 }
 
-.btn-delete i {
-  font-size: 16px; /* Adjust icon size */
+/* Adjust the width of the Weight Tracker section */
+#weighttracker .d-flex {
+  display: flex;
+  justify-content: space-between; /* Space the two sections evenly */
+  align-items: flex-start; /* Align the top edges */
+  gap: 20px; /* Adds consistent spacing */
+}
+
+
+#weighttracker form {
+  margin-bottom: 20px; /* Add spacing between form and history */
+}
+
+/* Adjust the Weight History list */
+#weightChart {
+  max-width:800px;
+  height: 600px !important; /* Adjust height */
+}
+
+.timestamp {
+  text-align: center;
+  display: block;
+  font-size: 0.85rem; /* Slightly smaller font size */
+  margin-top: 5px; /* Add space between weight and timestamp */
+}
+
+
+/* Collapsible Weight History */
+#weight-history-container {
+  flex: 1;
+  max-width: 45%; /* Adjusted width for the left container */
+  border: 1px solid #e0e0e0; /* Optional: Add border for better separation */
+  border-radius: 5px;
+  margin-right: 20px;
+}
+
+#weight-graph-container {
+  flex: 1;
+  max-width: 55%; /* Adjusted width for the right container */
+}
+
+#weight-history-wrapper.collapsed {
+  max-height: 0;
+  padding: 0;
+}
+
+#weight-history-wrapper.expanded {
+  max-height: 500px; /* Arbitrary max height; adjust if necessary */
+}
+
+
+#toggle-weight-history {
+  width: 375px;
+  text-align: center;
+  background-color: #6c757d; /* Matches collapsible button color */
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+#toggle-weight-history:hover {
+  background-color: #5a6268; /* Slightly darker on hover */
+}
+
+/* Ensure the graph container is responsive */
+#weight-graph-container canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* About Page Styling */
+#about .card-header {
+  text-align: center;
+  font-size: 1.6rem; /* Slightly larger font */
+  font-weight: bold;
+  background-color: #28a745; /* Green header background */
+  color: white; /* White text for better contrast */
+  padding: 10px;
+  border-radius: 5px 5px 0 0; /* Rounded top corners */
+}
+
+#about .card {
+  border: 1px solid #e0e0e0; /* Light gray border */
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  margin-bottom: 20px; /* Space between cards */
+}
+
+#about .list-group {
+  padding: 0;
+  margin: 0;
+}
+
+#about .list-group-item {
+  display: flex;
+  flex-wrap: wrap; /* Ensure content wraps properly */
+  justify-content: space-between; /* Space between version and details */
+  align-items: flex-start; /* Align items at the start */
+  padding: 15px;
+  border: none;
+}
+
+#about .list-group-item strong {
+  flex: 0 0 20%; /* Allocate 20% width for the version label */
+  font-size: 1.2rem; /* Slightly larger text for version */
+  font-weight: bold;
+  color: #343a40; /* Dark gray for text */
+}
+
+#about .list-group-item div {
+  flex: 0 0 75%; /* Allocate 75% width for the details */
+  padding-left: 10px; /* Add spacing to separate version and details */
+}
+
+#about .list-group-item ul {
+  list-style: circle; /* Circle bullets */
+  margin: 0;
+  padding-left: 20px; /* Indent the list for better alignment */
+}
+
+#about .list-group-item ul li {
+  margin-bottom: 5px; /* Space between list items */
+}
+
+#about .card-body {
+  padding: 20px; /* Consistent padding */
+}
+
+#about .card-body p {
+  margin-bottom: 10px; /* Space between paragraphs */
+  font-size: 1rem; /* Consistent font size */
+  line-height: 1.5; /* Improve readability */
+}
+
+
+#about ul {
+  padding-left: 20px;
+}
+
+#about ul li {
+  margin-bottom: 10px;
 }

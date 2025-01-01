@@ -6,6 +6,8 @@
   <title>Super Simple Weight Tracker</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!--Chart.js-->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <!-- Favicon -->
@@ -22,7 +24,8 @@
     <div class="navbar-nav">
         <a class="nav-link mx-3" href="#" onclick="showDashboard()">Daily Target</a>
         <a class="nav-link mx-3" href="#" onclick="toggleSection('calorie-history')">Calorie History</a>
-        <a class="nav-link mx-3" href="#" onclick="toggleSection('weight-tracking')">Weight Tracking</a>
+        <a class="nav-link mx-3" href="#" onclick="toggleSection('weighttracker')">Weight Tracking</a>
+        <a class="nav-link mx-3" href="#" onclick="toggleSection('about')">About</a>
         <a class="nav-link mx-3 text-danger" href="#" onclick="logout(event)">Log Out</a>
 
     </div>
@@ -99,7 +102,7 @@
 
       <!-- Dashboard Section -->
       <div id="dashboard" class="mt-4" style="display: none;">
-        <h2>Dashboard</h2>
+        <h2></h2>
 
         <!-- Daily Target and Calories Left Alerts -->
         <div id="daily-target" class="alert alert-primary alert-box">
@@ -169,15 +172,113 @@
 
         
 
-        <!-- Meals Section -->
-        <div class="card p-4 mt-4">
-          <h3>Meals</h3>
-          <ul id="meals-list" class="list-group"></ul>
+              <!-- Meals Section -->
+              <div class="card p-4 mt-4">
+                <h3>Meals</h3>
+                <ul id="meals-list" class="list-group"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      <!-- Weight Tracker Section -->
+      <div id="weighttracker" class="container mt-4">
+        <h3>Weight Tracker</h3>
+        <form id="weight-form">
+          <div class="form-group">
+            <label for="weight">Weight (kg):</label>
+            <input type="number" id="weight" class="form-control" placeholder="Enter your weight" required>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="logWeight()">Log Weight</button>
+        </form>
+        <hr>
+
+        <!-- Flexbox Container for Weight History and Graph -->
+        <div class="d-flex flex-wrap justify-content-between align-items-start">
+          <!-- Weight History Section -->
+          <div class="weight-history-container">
+            <button id="toggle-weight-history" class="btn btn-secondary mb-2">Show Weight History</button>
+            <div id="weight-history-wrapper" style="display: none;">
+              <ul id="weight-history" class="list-group">
+                <!-- Weight History Entries Will Be Dynamically Rendered Here -->
+              </ul>
+            </div>
+          </div>
+          <!-- Weight Graph Section -->
+          <div id="weight-graph-container" class="flex-fill">
+            <h4>Weight Graph</h4>
+            <canvas id="weightChart" style="height: 400px; width: 100%;"></canvas>
+            <select id="graph-filter" class="form-control mt-2" onchange="filterGraph()">
+              <option value="all">All Time</option>
+              <option value="1-day">Last 1 Day</option>
+              <option value="7-days">Last 7 Days</option>
+              <option value="1-month">Last 1 Month</option>
+              <option value="3-months">Last 3 Months</option>
+              <option value="6-months">Last 6 Months</option>
+              <option value="1-year">Last 1 Year</option>
+              <option value="2-years">Last 2 Years</option>
+          </select>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
+      <div id="about" class="container" style="display: none; margin-top: 20px;">
+        <!-- About Section -->
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h4>About This App</h4>
+          </div>
+          <div class="card-body">
+            <p>
+              This application was created as a personal project to enhance my skills in
+              <strong>Node.js</strong>, <strong>JavaScript</strong>, and overall software development principles.
+              It serves as a learning tool to explore backend development, frontend interactivity, and dynamic user interfaces. This website
+              has been built with a desktop/laptop in mind and not a mobile phone. This will be developed out better in future releases.
+            </p>
+          </div>
+        </div>
+      
+        <div id="about">
+          <div class="card">
+            <div class="card-header">Version Information & Feature Updates</div>
+            <div class="card-body">
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <strong>Version 1.0.0</strong>
+                  <div>
+                    - Initial release with core features:
+                    <ul>
+                      <li>Calorie tracking</li>
+                      <li>Weight tracking</li>
+                      <li>Dynamic chart for weight history</li>
+                      <li>Collapsible weight history list</li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="list-group-item">
+                  <strong>Version 1.1.0</strong>
+                  <div>
+                    - Added feature updates:
+                    <ul>
+                      <li>Time filters for weight graph (All Time, 7 Days, 1 Month, etc.)</li>
+                      <li>Improved styling and responsiveness</li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="list-group-item">
+                  <strong>Version 1.2.0</strong>
+                  <div>
+                    - Coming soon:
+                    <ul>
+                      <li>Calorie history information - calendar with daily meals/calories consumed</li>
+                      <li>Archive for Weight Entries over 30 days to stop clutter</li>
+                    </ul>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      
   <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>

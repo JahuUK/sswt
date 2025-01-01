@@ -4,13 +4,27 @@ let commonMeals = []; // Array to store common meals
 
 // Utility: Toggle section visibility
 function toggleSection(sectionToShow) {
-  const sections = ['login', 'register', 'recover-password', 'dashboard'];
+  const sections = [
+    'login',
+    'register',
+    'recover-password',
+    'dashboard',
+    'weighttracker',
+    'calorie-history',
+    'about',
+  ]; // Added 'about' section to the list
+  
   sections.forEach(section => {
     const element = document.getElementById(section);
     if (element) {
       element.style.display = section === sectionToShow ? 'block' : 'none';
     }
   });
+
+  // Ensure the chart is rendered when the weight tracker section is displayed
+  if (sectionToShow === 'weighttracker') {
+    fetchAndRenderWeightChart();
+  }
 }
 
 // User Registration
@@ -72,8 +86,6 @@ async function login() {
   }
 }
 
-
-
 // Password Recovery
 async function recoverPassword() {
   const username = document.getElementById('recover-username').value;
@@ -100,32 +112,26 @@ async function recoverPassword() {
 
 // Set Daily Target
 async function setTarget() {
-    const dailyTargetInput = document.getElementById('daily-target-input');
-    const dailyTarget = parseInt(dailyTargetInput.value, 10);
+  const dailyTarget = document.getElementById('daily-target-input').value;
 
-    if (isNaN(dailyTarget) || dailyTarget <= 0) {
-        alert('Please enter a valid daily target.');
-        return;
+  if (!dailyTarget || dailyTarget <= 0) return alert('Please enter a valid daily target.');
+
+  try {
+    const response = await fetch('/api/set-target', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, dailyTarget }),
+    });
+
+    if (response.ok) {
+      console.log(`Daily target successfully set to ${dailyTarget}`);
+      updateDailyTargetDisplay(dailyTarget);
+    } else {
+      alert('Failed to set daily target. Please try again.');
     }
-
-    try {
-        const response = await fetch('/api/set-target', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, dailyTarget }),
-        });
-
-        if (response.ok) {
-            alert('Daily target updated successfully!');
-            updateDailyTargetDisplay(dailyTarget); // Update the display value
-            calculateCaloriesLeft(); // Recalculate the calories left
-        } else {
-            alert('Failed to update daily target. Please try again.');
-        }
-    } catch (err) {
-        console.error('Error setting daily target:', err);
-        alert('Error updating daily target. Please try again.');
-    }
+  } catch (err) {
+    console.error('Error setting daily target:', err);
+  }
 }
 
 // Add Meal
@@ -281,6 +287,18 @@ async function checkSession() {
     if (navBar) navBar.style.display = 'none';
     userId = null; // Reset userId if session verification fails
   }
+}
+
+function logout(event) {
+  event.preventDefault();
+  localStorage.removeItem('token');
+  sessionStorage.removeItem('token');
+  userId = null; // Reset the userId
+  const navBar = document.querySelector('nav');
+  if (navBar) {
+    navBar.style.display = 'none'; // Hide the nav bar
+  }
+  toggleSection('login'); // Redirect to login
 }
 
 
@@ -528,21 +546,316 @@ function navigateTo(section) {
   alert(`Navigating to ${section} (This feature is not yet implemented).`);
 }
 
-function logout(event) {
-  event.preventDefault();
-  localStorage.removeItem('token');
-  sessionStorage.removeItem('token');
-  userId = null; // Reset the userId
-  const navBar = document.querySelector('nav');
-  if (navBar) {
-    navBar.style.display = 'none'; // Hide the nav bar
+////////////////////////////////////////////////////////////////////////////////// WEIGHT TRACKING PAGE FUNCTIONALITY
+
+// Log Weight
+async function logWeight() {
+  const weight = document.getElementById('weight').value;
+
+  if (!weight) {
+    alert('Please enter a weight.');
+    return;
   }
-  toggleSection('login'); // Redirect to login
+
+  try {
+    const response = await fetch('/api/weight-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, weight }),
+    });
+
+    if (response.ok) {
+      console.log('Weight logged successfully!');
+      document.getElementById('weight').value = ''; // Clear the input
+      fetchWeightHistory(); // Update weight history
+      fetchAndRenderWeightChart(); // Update the graph
+    } else {
+      throw new Error('Failed to log weight');
+    }
+  } catch (err) {
+    console.error('Error logging weight:', err);
+    alert('Error logging weight. Please try again.');
+  }
+}
+
+
+// Load Weight History
+async function loadWeightHistory() {
+  try {
+    const response = await fetch(`/api/weight-history?userId=${userId}`);
+    if (response.ok) {
+      const history = await response.json();
+      const historyList = document.getElementById('weight-history');
+      historyList.innerHTML = ''; // Clear existing history
+
+      history.forEach(entry => {
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item';
+        listItem.textContent = `${new Date(entry.timestamp).toLocaleString()}: ${entry.weight} kg`;
+        historyList.appendChild(listItem);
+      });
+    } else {
+      alert('Failed to fetch weight history.');
+    }
+  } catch (error) {
+    console.error('Error fetching weight history:', error);
+  }
+}
+
+// Fetch and render weight history
+async function fetchWeightHistory() {
+  if (!userId) {
+    console.error('User ID is null. Unable to fetch weight history.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/weight-history?userId=${userId}`);
+    if (!response.ok) {
+      console.error('Failed to fetch weight history.');
+      return;
+    }
+
+    // Correctly store the fetched data
+    const history = await response.json();
+
+    const weightHistoryList = document.getElementById('weight-history');
+    const wrapper = document.getElementById('weight-history-wrapper');
+    
+    // Ensure the weight history list is visible after updating
+    wrapper.style.display = 'block';
+    document.getElementById('toggle-weight-history').textContent = 'Hide Weight History';
+    
+    weightHistoryList.innerHTML = ''; // Clear previous entries
+    
+
+    // Render each weight entry
+    history.forEach(entry => {
+      const li = document.createElement('li');
+      li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+
+      // Format timestamp for the desired output
+      const formattedTimestamp = new Date(entry.timestamp).toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      li.innerHTML = `
+        <div>
+          <span>${entry.weight} kg</span>
+          <small class="timestamp text-muted">${formattedTimestamp}</small>
+        </div>
+        <button class="btn btn-danger btn-sm btn-delete" onclick="deleteWeight(${entry.id})">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      `;
+
+      weightHistoryList.appendChild(li);
+    });
+
+    // Ensure CSS styles are applied consistently
+    const buttons = document.querySelectorAll('.btn-delete');
+    buttons.forEach(button => {
+      button.classList.add('btn-danger'); // Ensure the correct style is applied
+    });
+  } catch (err) {
+    console.error('Error fetching weight history:', err);
+  }
+}
+
+// Toggle Weight History Visibility
+document.getElementById('toggle-weight-history').addEventListener('click', () => {
+  const wrapper = document.getElementById('weight-history-wrapper');
+  const button = document.getElementById('toggle-weight-history');
+
+  if (wrapper.style.display === 'none') {
+    wrapper.style.display = 'block';
+    button.textContent = 'Hide Weight History';
+  } else {
+    wrapper.style.display = 'none';
+    button.textContent = 'Show Weight History';
+  }
+});
+
+
+// Delete a weight entry
+async function deleteWeight(weightId) {
+  if (!weightId) {
+    console.error('Weight ID is null. Unable to delete.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/delete-weight', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weightId }),
+    });
+
+    if (response.ok) {
+      console.log('Weight entry deleted successfully.');
+      fetchWeightHistory(); // Refresh the weight history list
+      fetchAndRenderWeightChart(); // Refresh the chart
+    } else {
+      console.error('Failed to delete weight entry.');
+    }
+  } catch (err) {
+    console.error('Error deleting weight entry:', err);
+  }
 }
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////// CHART FUNCTIONALITY ON WEIGHT TRACKING PAGE
 
+let weightChart;
+
+// Initialize Chart.js
+function initializeChart(data = []) {
+  const ctx = document.getElementById('weightChart').getContext('2d');
+  weightChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(entry => new Date(entry.timestamp).toLocaleDateString()), // X-axis labels
+      datasets: [
+        {
+          label: 'Weight (kg)',
+          data: data.map(entry => entry.weight), // Y-axis data
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Date',
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Weight (kg)',
+          },
+        },
+      },
+    },
+  });
+}
+
+// Update the chart with new data
+function updateChart(data) {
+  weightChart.data.labels = data.map(entry => new Date(entry.timestamp).toLocaleDateString());
+  weightChart.data.datasets[0].data = data.map(entry => entry.weight);
+  weightChart.update();
+}
+
+// Apply Filter Logic
+function applyFilter(data, filter) {
+  const now = new Date();
+  let cutoffDate;
+
+  switch (filter) {
+    case '1day':
+      cutoffDate = new Date(now.setDate(now.getDate() - 1));
+      break;
+    case '7days':
+      cutoffDate = new Date(now.setDate(now.getDate() - 7));
+      break;
+    case '1month':
+      cutoffDate = new Date(now.setMonth(now.getMonth() - 1));
+      break;
+    case '3months':
+      cutoffDate = new Date(now.setMonth(now.getMonth() - 3));
+      break;
+    case '6months':
+      cutoffDate = new Date(now.setMonth(now.getMonth() - 6));
+      break;
+    case '1year':
+      cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
+      break;
+    case '2years':
+      cutoffDate = new Date(now.setFullYear(now.getFullYear() - 2));
+      break;
+    default: // "all"
+      return data;
+  }
+
+  return data.filter(entry => new Date(entry.timestamp) >= cutoffDate);
+}
+
+// Fetch Weight History and Update Chart
+async function fetchAndRenderWeightChart() {
+  try {
+    const response = await fetch(`/api/weight-history?userId=${userId}`);
+    if (!response.ok) {
+      console.error('Failed to fetch weight history');
+      return;
+    }
+
+    const weightHistory = await response.json();
+
+    // Get selected filter
+    const filterElement = document.getElementById('time-filter');
+    const filter = filterElement ? filterElement.value : 'all';
+
+    // Apply filter to data
+    const filteredData = applyFilter(weightHistory, filter);
+
+    // Update Chart
+    if (!weightChart) {
+      initializeChart(filteredData);
+    } else {
+      updateChart(filteredData);
+    }
+
+    // Update Weight History List
+    const historyList = document.getElementById('weight-history');
+    historyList.innerHTML = ''; // Clear existing history
+    filteredData.forEach(entry => {
+      const listItem = document.createElement('li');
+      listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+
+      // Format timestamp
+      const formattedTimestamp = new Date(entry.timestamp).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      listItem.innerHTML = `
+        <div>
+          <span>${entry.weight} kg</span>
+          <small class="timestamp text-muted">${formattedTimestamp}</small>
+        </div>
+        <button class="btn-delete" onclick="deleteWeight(${entry.id})">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      `;
+      historyList.appendChild(listItem);
+    });
+  } catch (err) {
+    console.error('Error fetching weight history:', err);
+  }
+}
+
+// Event Listener for Filter Change
+document.addEventListener('DOMContentLoaded', () => {
+  const filterElement = document.getElementById('time-filter');
+  if (filterElement) {
+    filterElement.addEventListener('change', fetchAndRenderWeightChart);
+  }
+});
 
 // Wait for the DOM to fully load before running these initializations
 document.addEventListener('DOMContentLoaded', async () => {
