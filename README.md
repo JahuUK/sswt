@@ -1,7 +1,7 @@
 # Weight and Calorie Tracker
 
 ## Overview
-The Weight and Calorie Tracker application is a simple, user-friendly web app designed to help individuals monitor their weight and calorie intake over time. By providing tools to log data and visualize trends, this app empowers users to stay on top of their health and wellness goals.
+The Weight and Calorie Tracker application is a simple, user-friendly web app designed to help individuals monitor their weight and calorie intake over time. By providing tools to log data and visualize trends, built initially so I could keep track of my own calorie intake and weight loss... I decided to expand the access of this out to GitHub in case anybody wants to use something similar. Currently the 'production' environment for this is located at https://wt.jahu.uk.
 
 ## Features
 - **Weight Tracker**: Log and view weight entries over time.
@@ -18,9 +18,9 @@ The Weight and Calorie Tracker application is a simple, user-friendly web app de
 
 ## Why This App Was Created
 This application was developed to:
-1. **Simplify Health Tracking**: Many existing tools are either overly complex or not tailored to individual needs. This app provides a focused, streamlined approach.
+1. **Simplify Health Tracking**: I just wanted a place to track my weight and calorie in take. I didn't care about barcode scanning, curated lists or whatever. I am under the impression a tool like this likely already exists, but wanted to do something I was personally invested in as it'd mean me I'd more than likely stick to my new positive health routine.
 2. **Promote Health Awareness**: Tracking trends over time can motivate users to make informed decisions about their health.
-3. **Learn and Experiment**: The project also serves as a hands-on exploration of modern web development techniques, including dynamic charts and responsive design.
+3. **Learn and Experiment**: It cannot be stated enough though, this project is primarily an exploration of software and web development practices. This is all new to me so I wanted to have a small project that I could work on to busy myself in my spare time.
 
 ## How to Run the Application
 1. Clone the repository:
