@@ -46,18 +46,11 @@ This application was developed to:
 - Exporting data for offline analysis.
 - Improving data input methods for a smoother user experience.
 
-## License
-This project is licensed under the [MIT License](LICENSE).
-
 ---
 
 ## Future Structure of Code
 
 I'm well aware at the moment that it's a complete mess in the scripts.js file. The dream is to use better development practices to rehash everything. When I get to version 1.0.0 of the app then I'll take that work on, I think. The structure I've currently got laid out is below:
-
-# Project File Structure
-
-This document outlines the ideal file structure for the web application, ensuring modularity, scalability, and maintainability.
 
 ## File Structure
 
@@ -98,6 +91,11 @@ project-root/
 ├── package.json               # Node.js dependencies and scripts
 └── README.md                  # Project documentation
 ```
+
+---
+
+## License
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
