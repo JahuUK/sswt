@@ -51,4 +51,54 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
+## Future Structure of Code
+
+I'm well aware at the moment that it's a complete mess in the scripts.js file. The dream is to use better development practices to rehash everything. When I get to version 1.0.0 of the app then I'll take that work on, I think. The structure I've currently got laid out is below:
+
+# Project File Structure
+
+This document outlines the ideal file structure for the web application, ensuring modularity, scalability, and maintainability.
+
+## File Structure
+
+```
+project-root/
+├── src/
+│   ├── controllers/           # Handles app logic (e.g., addMeal, loadMeals)
+│   │   ├── mealController.js
+│   │   └── userController.js
+│   ├── models/                # Defines data models and database interactions
+│   │   ├── mealModel.js
+│   │   └── userModel.js
+│   ├── routes/                # API route definitions
+│   │   ├── mealRoutes.js
+│   │   └── userRoutes.js
+│   ├── services/              # Business logic and utilities (e.g., calculations)
+│   │   └── calorieService.js
+│   ├── middleware/            # Middleware for authentication, logging, etc.
+│   │   └── authMiddleware.js
+│   ├── config/                # Configuration files (e.g., database, environment)
+│   │   └── dbConfig.js
+│   ├── utils/                 # Helper functions (e.g., date formatting)
+│   │   └── dateUtils.js
+│   ├── app.js                 # Main application logic (Express initialization)
+│   └── server.js              # Entry point for starting the server
+├── public/                    # Static files (CSS, images, etc.)
+│   ├── css/
+│   │   └── styles.css
+│   ├── js/
+│   │   └── scripts.js
+│   └── index.html             # Main HTML file
+├── tests/                     # Unit and integration tests
+│   ├── controllers/
+│   ├── models/
+│   └── routes/
+├── .env                       # Environment variables
+├── .gitignore                 # Git ignore rules
+├── package.json               # Node.js dependencies and scripts
+└── README.md                  # Project documentation
+```
+
+---
+
 Thank you for checking out the Weight and Calorie Tracker! Contributions and feedback are always welcome.
