@@ -141,6 +141,7 @@ label {
   justify-content: space-between; /* Space text and button apart */
   align-items: center; /* Vertically align text and button */
   padding: 0.5rem 1rem; /* Adjust padding */
+  font-weight: normal;
 }
 
 /* Alert Box Styling (Daily Target & Calories Left) */

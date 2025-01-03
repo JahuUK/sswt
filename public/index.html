@@ -53,32 +53,91 @@
             <button class="btn btn-primary" onclick="toggleSection('recover-password')">Forgot Password?</button>
           </div>
 
-          <!-- Register Section -->
-          <div id="register" class="card p-4 mt-4" style="display: none;">
-            <h2>Register</h2>
-            <div class="form-group">
-              <input type="text" id="reg-username" class="form-control" placeholder="Username">
-            </div>
-            <div class="form-group">
-              <input type="password" id="reg-password" class="form-control" placeholder="Password">
-            </div>
-            <div class="form-group">
-              <label for="security-question">Security Question</label>
-              <select id="security-question" class="form-control">
-                <option value="" disabled selected>Select a security question</option>
-                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
-                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
-                <option value="What was the make of your first car?">What was the make of your first car?</option>
-                <option value="What city were you born in?">What city were you born in?</option>
-                <option value="What was your favorite teacher's name?">What was your favorite teacher's name?</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <input type="text" id="security-answer" class="form-control" placeholder="Answer">
-            </div>
-            <button class="btn btn-primary" onclick="register()"><i class="fas fa-user-plus"></i> Register</button>
-            <button class="btn btn-link" onclick="toggleSection('login')">Back to Login</button>
+        <!-- Register Section -->
+        <div id="register" class="card p-4 mt-4" style="display: none;">
+          <h2>Register</h2>
+
+          <!-- Username Input -->
+          <div class="form-group">
+            <input type="text" id="reg-username" class="form-control" placeholder="Username" required>
           </div>
+
+          <!-- Password Input -->
+          <div class="form-group">
+            <input type="password" id="reg-password" class="form-control" placeholder="Password" required>
+          </div>
+
+          <!-- Security Question Dropdown -->
+          <div class="form-group">
+            <label for="security-question">Security Question</label>
+            <select id="security-question" class="form-control" required>
+              <option value="" disabled selected>Select a security question</option>
+              <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+              <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+              <option value="What was the make of your first car?">What was the make of your first car?</option>
+              <option value="What city were you born in?">What city were you born in?</option>
+              <option value="What was your favorite teacher's name?">What was your favorite teacher's name?</option>
+            </select>
+          </div>
+
+          <!-- Security Answer Input -->
+          <div class="form-group">
+            <input type="text" id="security-answer" class="form-control" placeholder="Answer" required>
+          </div>
+
+          <!-- Hidden Timezone Input -->
+          <input type="hidden" id="timezone" value="">
+
+          <!-- Register Button -->
+          <button class="btn btn-primary" onclick="register()"><i class="fas fa-user-plus"></i> Register</button>
+
+          <!-- Back to Login Link -->
+          <button class="btn btn-link" onclick="toggleSection('login')">Back to Login</button>
+        </div>
+
+        <script>
+          // Automatically set the user's timezone
+          document.getElementById('timezone').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+          async function register() {
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            const securityQuestion = document.getElementById('security-question').value;
+            const securityAnswer = document.getElementById('security-answer').value;
+            const timeZone = document.getElementById('timezone').value;
+
+            // Validate inputs
+            if (!username || !password || !securityQuestion || !securityAnswer) {
+              alert('Please fill in all fields.');
+              return;
+            }
+
+            try {
+              const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  username,
+                  password,
+                  securityQuestion,
+                  securityAnswer,
+                  timeZone,
+                }),
+              });
+
+              if (response.ok) {
+                alert('Registration successful!');
+                toggleSection('login'); // Redirect to login
+              } else {
+                alert('Error during registration. Please try again.');
+              }
+            } catch (err) {
+              console.error('Error during registration:', err);
+              alert('Failed to register. Please try again.');
+            }
+          }
+        </script>
+
 
           <!-- Password Recovery Section -->
           <div id="recover-password" class="card p-4 mt-4" style="display: none;">
@@ -234,6 +293,10 @@
               It serves as a learning tool to explore backend development, frontend interactivity, and dynamic user interfaces. This website
               has been built with a desktop/laptop in mind and not a mobile phone. This will be developed out better in future releases.
             </p>
+            <p>
+              <strong>Current roadmap for improvements and new features includes:</strong> Calendar with meal history/calories consumed. Archiving of both weight and calorie history
+                to prevent cluttering of info (weight every 30 days, meals daily). Daily resets for calories at 12am local time. 
+            </p>
           </div>
         </div>
       
@@ -243,16 +306,17 @@
             <div class="card-body">
               <ul class="list-group">
                 <li class="list-group-item">
-                  <strong>Version 0.1.0</strong>
+                  <strong>Version 0.2.1</strong>
                   <div>
-                    - Initial release with core features:
+                    - Added features and bug fixes:
                     <ul>
-                      <li>Calorie tracking</li>
-                      <li>Weight tracking</li>
-                      <li>Dynamic chart for weight history</li>
-                      <li>Collapsible weight history list</li>
+                      <li>Fixed issue with different users seeing each others common meals</li>
+                      <li>Calories left resets daily, 12am local time</li>
+                      <li>Session token destroyed on log off</li>
+                      <li>Various .css and formatting fixes</li>
+                      <li>Dynamic calorie number updates, rather than having to refresh</li>                              
                     </ul>
-                  </div>
+                  </div>                  
                 </li>
                 <li class="list-group-item">
                   <strong>Version 0.2.0</strong>
@@ -265,14 +329,14 @@
                   </div>
                 </li>
                 <li class="list-group-item">
-                  <strong>Version 0.3.0</strong>
+                  <strong>Version 0.1.0</strong>
                   <div>
                     - Coming soon:
                     <ul>
-                      <li>Calorie history information - calendar with daily meals/calories consumed</li>
-                      <li>Archive for Weight Entries over 30 days to stop clutter</li>
-                      <li>Daily reset for calories consumed/target</li>
-                      <li>Archive of meals to stop clutter</li>
+                      <li>Calorie tracking</li>
+                      <li>Weight tracking</li>
+                      <li>Dynamic chart for weight history</li>
+                      <li>Collapsible weight history list</li>
                     </ul>
                   </div>
                 </li>

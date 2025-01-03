@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const sql = require('mssql');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const cron = require('node-cron');
+
 require('dotenv').config();
 
 const app = express();
@@ -22,23 +24,29 @@ sql.connect(dbConfig)
   .then(() => console.log('Connected to Azure SQL Database'))
   .catch((err) => console.error('Database connection failed:', err.message));
 
+
 // Register user
 app.post('/api/register', async (req, res) => {
-  const { username, password, securityQuestion, securityAnswer } = req.body;
+  const { username, password, securityQuestion, securityAnswer, timeZone } = req.body;
 
   try {
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    const hashedAnswer = bcrypt.hashSync(securityAnswer, 10);
+      const hashedPassword = bcrypt.hashSync(password, 10); // Hash the password
+      const hashedAnswer = bcrypt.hashSync(securityAnswer, 10); // Hash the security answer
 
-    const result = await sql.query`INSERT INTO Users (username, password, securityQuestion, securityAnswer) 
-                                   VALUES (${username}, ${hashedPassword}, ${securityQuestion}, ${hashedAnswer}); 
-                                   SELECT SCOPE_IDENTITY() AS id;`;
-    res.send({ id: result.recordset[0].id });
+      // Insert user data into the database, including the timeZone
+      await sql.query`
+          INSERT INTO Users (username, password, securityQuestion, securityAnswer, timeZone)
+          VALUES (${username}, ${hashedPassword}, ${securityQuestion}, ${hashedAnswer}, ${timeZone || 'UTC'});
+      `;
+
+      res.send('User registered successfully'); // Success response
   } catch (err) {
-    console.error('Error registering user:', err.message);
-    res.status(500).send('Error registering user');
+      console.error('Error registering user:', err.message); // Log the error
+      res.status(500).send('Error registering user'); // Send error response
   }
 });
+
+
 
 // Login User
 app.post('/api/login', async (req, res) => {
@@ -82,29 +90,42 @@ app.post('/api/set-target', async (req, res) => {
   const { userId, dailyTarget } = req.body;
 
   try {
-    console.log(`Received set-target request: userId=${userId}, dailyTarget=${dailyTarget}`);
-    await sql.query`UPDATE Users SET dailyTarget = ${dailyTarget} WHERE id = ${userId}`;
-    res.send('Daily target updated');
+      // Update the daily target and recalculate CaloriesLeft
+      await sql.query`
+          UPDATE Users
+          SET DailyTarget = ${dailyTarget},
+              CaloriesLeft = ${dailyTarget} - (
+                  SELECT ISNULL(SUM(calories), 0)
+                  FROM Meals
+                  WHERE Meals.userId = Users.id AND CAST(Meals.timestamp AS DATE) = CAST(GETDATE() AS DATE)
+              )
+          WHERE id = ${userId};
+      `;
+
+      res.send('Daily target and CaloriesLeft updated');
   } catch (err) {
-    console.error('Error setting daily target:', err.message);
-    res.status(500).send('Error setting daily target');
+      console.error('Error setting daily target:', err.message);
+      res.status(500).send('Error setting daily target');
   }
 });
+
+
 
 app.get('/api/get-target', async (req, res) => {
   const { userId } = req.query;
   try {
-    const result = await sql.query`SELECT dailyTarget FROM Users WHERE id = ${userId}`;
-    if (result.recordset.length === 0) {
-      return res.status(404).send('User not found');
-    }
-    const dailyTarget = result.recordset[0].dailyTarget;
-    res.send({ dailyTarget: parseInt(dailyTarget, 10) }); // Ensure numeric value
+      const result = await sql.query`SELECT DailyTarget, CaloriesLeft FROM Users WHERE id = ${userId}`;
+      if (result.recordset.length === 0) {
+          return res.status(404).send('User not found');
+      }
+      const { DailyTarget, CaloriesLeft } = result.recordset[0];
+      res.send({ dailyTarget: DailyTarget, caloriesLeft: CaloriesLeft });
   } catch (err) {
-    console.error('Error fetching daily target:', err.message);
-    res.status(500).send('Error fetching daily target');
+      console.error('Error fetching target:', err.message);
+      res.status(500).send('Error fetching target');
   }
 });
+
 
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
@@ -150,42 +171,99 @@ app.post('/api/verify-token', (req, res) => {
 app.post('/api/add-meal', async (req, res) => {
   const { userId, meal } = req.body;
 
+  // Validate input
+  if (!userId || !meal || !meal.name || !meal.calories) {
+      return res.status(400).json({ error: 'Invalid input. Please provide valid userId and meal details.' });
+  }
+
   try {
-    await sql.query`INSERT INTO Meals (userId, name, calories, timestamp) 
-                    VALUES (${userId}, ${meal.name}, ${meal.calories}, GETDATE())`;
-    res.send('Meal added');
+      // Insert meal and fetch the newly added record
+      const result = await sql.query`
+          INSERT INTO Meals (userId, name, calories, timestamp) 
+          VALUES (${userId}, ${meal.name}, ${meal.calories}, GETDATE());
+
+          UPDATE Users
+          SET CaloriesLeft = CaloriesLeft - ${meal.calories}
+          WHERE id = ${userId};
+
+          SELECT TOP 1 id, name, calories, timestamp AS date
+          FROM Meals
+          WHERE userId = ${userId}
+          ORDER BY timestamp DESC;
+      `;
+
+      // Retrieve the newly added meal
+      const newMeal = result.recordset[0];
+
+      // Format the timestamp as an ISO string
+      if (newMeal && newMeal.date) {
+          newMeal.date = new Date(newMeal.date).toISOString(); // Convert timestamp to ISO format
+      }
+
+      // Send the new meal as a response
+      res.status(201).json(newMeal);
   } catch (err) {
-    console.error('Error adding meal:', err.message);
-    res.status(500).send('Error adding meal');
+      console.error('Error adding meal:', err.message);
+      res.status(500).json({ error: 'Error adding meal. Please try again later.' });
   }
 });
+
 
 
 // Get meals
 app.get('/api/meals', async (req, res) => {
   const { userId } = req.query;
 
+  if (!userId) {
+      return res.status(400).send('Missing userId parameter');
+  }
+
   try {
-    const result = await sql.query`SELECT id, name, calories, timestamp FROM Meals WHERE userId = ${userId} ORDER BY timestamp DESC`;
-    res.send(result.recordset);
+      const result = await sql.query`
+          SELECT id, name, calories, timestamp AS date
+          FROM Meals
+          WHERE userId = ${userId}
+          ORDER BY timestamp DESC
+      `;
+
+      // Map the recordset to ensure the date is in ISO format
+      const meals = result.recordset.map((meal) => ({
+          ...meal,
+          date: meal.date ? new Date(meal.date).toISOString() : null,
+      }));
+
+      res.json(meals); // Send the meals in JSON format
   } catch (err) {
-    console.error('Error fetching meals:', err.message);
-    res.status(500).send('Error fetching meals');
+      console.error('Error fetching meals:', err.message);
+      res.status(500).send('Error fetching meals');
   }
 });
 
 
+
 // Delete meal
 app.delete('/api/delete-meal', async (req, res) => {
-  const { mealId } = req.body;
+  const { mealId, userId } = req.body; // Ensure `userId` is sent from the frontend
 
   try {
-    console.log(`Deleting meal with ID: ${mealId}`);
-    await sql.query`DELETE FROM Meals WHERE id = ${mealId}`;
-    res.send('Meal deleted successfully');
+      // Delete the meal
+      await sql.query`DELETE FROM Meals WHERE id = ${mealId}`;
+
+      // Recalculate CaloriesLeft
+      await sql.query`
+          UPDATE Users
+          SET CaloriesLeft = DailyTarget - (
+              SELECT ISNULL(SUM(calories), 0)
+              FROM Meals
+              WHERE Meals.userId = Users.id AND CAST(Meals.timestamp AS DATE) = CAST(GETDATE() AS DATE)
+          )
+          WHERE id = ${userId};
+      `;
+
+      res.send('Meal deleted and CaloriesLeft updated');
   } catch (err) {
-    console.error('Error deleting meal:', err.message);
-    res.status(500).send('Error deleting meal');
+      console.error('Error deleting meal:', err.message);
+      res.status(500).send('Failed to delete meal');
   }
 });
 
@@ -315,20 +393,27 @@ app.post('/api/add-common-meal', async (req, res) => {
 
 // Fetch common meals
 app.get('/api/common-meals', async (req, res) => {
-  const { userId } = req.query;
+  const token = req.headers.authorization?.split(' ')[1];
 
-  if (!userId) {
-    return res.status(400).send('Missing userId.');
+  if (!token) {
+      return res.status(401).send('Token is missing');
   }
 
   try {
-    const result = await sql.query`SELECT * FROM CommonMeals WHERE userId = ${userId}`;
-    res.send(result.recordset);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token
+      const userId = decoded.id; // Extract userId from the token
+
+      // Query the database for meals belonging to this user
+      const result = await sql.query`
+          SELECT * FROM CommonMeals WHERE userId = ${userId}
+      `;
+      res.send(result.recordset); // Send meals back to the client
   } catch (err) {
-    console.error('Error fetching common meals:', err.message);
-    res.status(500).send('Error fetching common meals.');
+      console.error('Error fetching common meals:', err.message);
+      res.status(500).send('Error fetching common meals');
   }
 });
+
 
 
 
@@ -449,6 +534,26 @@ app.delete('/api/delete-weight', async (req, res) => {
     res.status(500).send('Failed to delete weight entry.');
   }
 });
+
+cron.schedule('0 0 * * *', async () => {
+  console.log('Running daily CaloriesLeft reset...');
+  try {
+      // Reset CaloriesLeft to DailyTarget minus today's consumed calories
+      const result = await sql.query(`
+          UPDATE Users
+          SET CaloriesLeft = DailyTarget - (
+              SELECT ISNULL(SUM(calories), 0)
+              FROM Meals
+              WHERE Meals.userId = Users.id AND CAST(Meals.timestamp AS DATE) = CAST(GETDATE() AS DATE)
+          )
+      `);
+      console.log('CaloriesLeft reset completed:', result.rowsAffected);
+  } catch (error) {
+      console.error('Error during CaloriesLeft reset:', error.message);
+  }
+});
+
+
 
 
 
